@@ -39,6 +39,12 @@ void enqueue_task(os_threadpool_t *tp, os_task_t *t)
 	assert(t != NULL);
 
 	/* TODO: Enqueue task to the shared task queue. Use synchronization. */
+
+	pthread_mutex_lock(&tp->mutex);
+
+	list_add_tail(&tp->head, &t->list);
+
+	pthread_mutex_unlock(&tp->mutex);
 }
 
 /*
@@ -59,10 +65,21 @@ static int queue_is_empty(os_threadpool_t *tp)
 
 os_task_t *dequeue_task(os_threadpool_t *tp)
 {
-	os_task_t *t;
+	os_task_t *t = NULL;
 
 	/* TODO: Dequeue task from the shared task queue. Use synchronization. */
-	return NULL;
+	if (!queue_is_empty(tp)) {
+		pthread_mutex_lock(&tp->mutex);
+
+		os_list_node_t *crtElem = tp->head.next;
+		t = list_entry(crtElem, os_task_t, list);
+
+		list_del(crtElem);
+
+		pthread_mutex_unlock(&tp->mutex);
+	}
+	
+	return t;
 }
 
 /* Loop function for threads */
@@ -105,6 +122,7 @@ os_threadpool_t *create_threadpool(unsigned int num_threads)
 	list_init(&tp->head);
 
 	/* TODO: Initialize synchronization data. */
+	pthread_mutex_init(&tp->mutex, NULL);
 
 	tp->num_threads = num_threads;
 	tp->threads = malloc(num_threads * sizeof(*tp->threads));
@@ -123,6 +141,7 @@ void destroy_threadpool(os_threadpool_t *tp)
 	os_list_node_t *n, *p;
 
 	/* TODO: Cleanup synchronization data. */
+	pthread_mutex_destroy(&tp->mutex);
 
 	list_for_each_safe(n, p, &tp->head) {
 		list_del(n);
