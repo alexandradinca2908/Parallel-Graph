@@ -60,7 +60,7 @@ void task_argument(void *node)
 	if (nrNodes <= 0) {
 		tp->noTaskLeft = 1;
 	}
-
+	
 	pthread_mutex_unlock(&nrNodes_mutex);
 }
 
@@ -73,6 +73,15 @@ static void process_node(unsigned int idx)
 	os_task_t *task = create_task(task_argument, nodeZero, NULL);
 
 	enqueue_task(tp, task);
+
+	pthread_mutex_lock(&nrNodes_mutex);
+	nrNodes--;
+	
+	if (nrNodes <= 0) {
+		tp->noTaskLeft = 1;
+	}
+	
+	pthread_mutex_unlock(&nrNodes_mutex);
 }
 
 void count_nodes(os_graph_t *graph, int idx, int *visited) {

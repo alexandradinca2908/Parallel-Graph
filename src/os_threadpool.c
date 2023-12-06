@@ -9,9 +9,6 @@
 #include "log/log.h"
 #include "utils.h"
 
-// DELETE
-#include "os_graph.h"
-
 /* Create a task that would be executed by a thread. */
 os_task_t *create_task(void (*action)(void *), void *arg, void (*destroy_arg)(void *))
 {
@@ -65,7 +62,6 @@ static int queue_is_empty(os_threadpool_t *tp)
  * Return NULL if work is complete, i.e. no task will become available,
  * i.e. all threads are going to block.
  */
-
 os_task_t *dequeue_task(os_threadpool_t *tp)
 {
 	os_task_t *t = NULL;
