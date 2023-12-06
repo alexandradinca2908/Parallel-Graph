@@ -105,7 +105,7 @@ void wait_for_completion(os_threadpool_t *tp)
 {
 	/* TODO: Wait for all worker threads. Use synchronization. */
 	while (1) {
-		if (tp->noTaskLeft == 1) {
+		if (tp->noTaskLeft == 1 || queue_is_empty(&tp)) {
 			break;
 		}
 	}

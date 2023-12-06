@@ -122,6 +122,10 @@ int main(int argc, char *argv[])
 	wait_for_completion(tp);
 	destroy_threadpool(tp);
 
+	pthread_mutex_destroy(&sum_mutex);
+	pthread_mutex_destroy(&neighbour_mutex);
+	pthread_mutex_destroy(&nrNodes_mutex);
+
 	printf("%d", sum);
 
 	return 0;
