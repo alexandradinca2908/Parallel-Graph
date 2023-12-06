@@ -113,6 +113,10 @@ int main(int argc, char *argv[])
 	count_nodes(graph, 0, visited);
 
 	/* TODO: Initialize graph synchronization mechanisms. */
+	pthread_mutex_init(&sum_mutex, NULL);
+	pthread_mutex_init(&neighbour_mutex, NULL);
+	pthread_mutex_init(&nrNodes_mutex, NULL);
+
 	tp = create_threadpool(NUM_THREADS);
 	process_node(0);
 	wait_for_completion(tp);
