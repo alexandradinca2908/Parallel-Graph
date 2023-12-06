@@ -9,6 +9,9 @@
 #include "log/log.h"
 #include "utils.h"
 
+// DELETE
+#include "os_graph.h"
+
 /* Create a task that would be executed by a thread. */
 os_task_t *create_task(void (*action)(void *), void *arg, void (*destroy_arg)(void *))
 {
@@ -105,7 +108,7 @@ void wait_for_completion(os_threadpool_t *tp)
 {
 	/* TODO: Wait for all worker threads. Use synchronization. */
 	while (1) {
-		if (tp->noTaskLeft == 1 || queue_is_empty(&tp)) {
+		if (tp->noTaskLeft == 1 || queue_is_empty(tp)) {
 			break;
 		}
 	}

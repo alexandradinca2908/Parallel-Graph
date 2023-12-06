@@ -58,7 +58,7 @@ void task_argument(void *node)
 	nrNodes--;
 	pthread_mutex_unlock(&nrNodes_mutex);
 
-	if (nrNodes == 0) {
+	if (nrNodes <= 1) {
 		tp->noTaskLeft = 1;
 	}
 }
