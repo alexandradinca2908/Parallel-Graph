@@ -56,11 +56,12 @@ void task_argument(void *node)
 
 	pthread_mutex_lock(&nrNodes_mutex);
 	nrNodes--;
-	pthread_mutex_unlock(&nrNodes_mutex);
-
-	if (nrNodes <= 1) {
+	
+	if (nrNodes <= 0) {
 		tp->noTaskLeft = 1;
 	}
+
+	pthread_mutex_unlock(&nrNodes_mutex);
 }
 
 static void process_node(unsigned int idx)
