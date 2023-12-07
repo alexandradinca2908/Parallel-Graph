@@ -88,10 +88,13 @@ static void *thread_loop_function(void *arg)
 
 	while (1) {
 		os_task_t *t;
-
+		
 		t = dequeue_task(tp);
-		if (t == NULL)
+		if (t == NULL) {
+			tp->done++;
 			break;
+		}
+			
 		t->action(t->argument);
 		destroy_task(t);
 	}
@@ -104,7 +107,7 @@ void wait_for_completion(os_threadpool_t *tp)
 {
 	/* TODO: Wait for all worker threads. Use synchronization. */
 	while (1) {
-		if (tp->noTaskLeft == 1 || queue_is_empty(tp)) {
+		if (tp->done == 4) {
 			break;
 		}
 	}
@@ -137,6 +140,7 @@ os_threadpool_t *create_threadpool(unsigned int num_threads)
 	}
 
 	tp->noTaskLeft = 0;
+	tp->done = 0;
 
 	return tp;
 }

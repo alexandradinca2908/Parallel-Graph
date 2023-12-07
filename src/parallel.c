@@ -36,6 +36,19 @@ void task_argument(void *node)
 	//  Mark as done
 	graph->visited[crtNode->id] = DONE;
 
+	//  Remove node from unvisited nodes
+	pthread_mutex_lock(&nrNodes_mutex);
+	nrNodes--;
+	
+	if (nrNodes == 0) {
+		tp->noTaskLeft = 1;
+		pthread_mutex_unlock(&nrNodes_mutex);
+		return;
+	}
+	pthread_mutex_unlock(&nrNodes_mutex);
+
+	//  There are still unvisited nodes
+	//  We look for them in the crt node's neighbours
 	for (unsigned int i = 0; i < crtNode->num_neighbours; i++) {
 		pthread_mutex_lock(&neighbour_mutex);
 
@@ -52,14 +65,6 @@ void task_argument(void *node)
 		} else {
 			pthread_mutex_unlock(&neighbour_mutex);
 		}
-	}
-
-	pthread_mutex_lock(&nrNodes_mutex);
-	nrNodes--;
-	pthread_mutex_unlock(&nrNodes_mutex);
-
-	if (nrNodes <= 1) {
-		tp->noTaskLeft = 1;
 	}
 }
 
