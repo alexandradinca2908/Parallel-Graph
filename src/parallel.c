@@ -39,7 +39,7 @@ void task_argument(void *node)
 	//  Remove node from unvisited nodes
 	pthread_mutex_lock(&nrNodes_mutex);
 	nrNodes--;
-	
+
 	if (nrNodes == 0) {
 		tp->noTaskLeft = 1;
 		pthread_mutex_unlock(&nrNodes_mutex);
@@ -73,7 +73,7 @@ static void process_node(unsigned int idx)
 	/* TODO: Implement thread-pool based processing of graph. */
 
 	os_node_t *nodeZero = graph->nodes[idx];
-	
+
 	os_task_t *task = create_task(task_argument, nodeZero, NULL);
 
 	enqueue_task(tp, task);
@@ -90,7 +90,7 @@ void count_nodes(os_graph_t *graph, int idx, int *visited) {
 		if (visited[neighbour] == 0) {
 			nrNodes++;
 			count_nodes(graph, neighbour, visited);
-		}		
+		}
 	}
 }
 
@@ -109,7 +109,8 @@ int main(int argc, char *argv[])
 	graph = create_graph_from_file(input_file);
 
 	//  Count how many nodes are connected to node 0
-	int visited[graph->num_nodes];
+	const unsigned int kNumNodes = graph->num_nodes;
+	int visited[kNumNodes];
 	for (unsigned int i = 0; i < graph->num_nodes; i++) {
 		visited[i] = 0;
 	}

@@ -41,7 +41,7 @@ void enqueue_task(os_threadpool_t *tp, os_task_t *t)
 	/* TODO: Enqueue task to the shared task queue. Use synchronization. */
 
 	pthread_mutex_lock(&tp->mutex);
-	
+
 	list_add_tail(&tp->head, &t->list);
 
 	pthread_mutex_unlock(&tp->mutex);
@@ -74,10 +74,10 @@ os_task_t *dequeue_task(os_threadpool_t *tp)
 		t = list_entry(crtElem, os_task_t, list);
 
 		list_del(crtElem);
-		
+	
 		pthread_mutex_unlock(&tp->mutex);
 	}
-	
+
 	return t;
 }
 
@@ -88,13 +88,18 @@ static void *thread_loop_function(void *arg)
 
 	while (1) {
 		os_task_t *t;
-		
+
 		t = dequeue_task(tp);
+
+		pthread_mutex_lock(&tp->mutex);
 		if (t == NULL) {
 			tp->done++;
+			pthread_mutex_unlock(&tp->mutex);
+
 			break;
 		}
-			
+		pthread_mutex_unlock(&tp->mutex);
+
 		t->action(t->argument);
 		destroy_task(t);
 	}
@@ -107,7 +112,7 @@ void wait_for_completion(os_threadpool_t *tp)
 {
 	/* TODO: Wait for all worker threads. Use synchronization. */
 	while (1) {
-		if (tp->done == 4) {
+		if (tp->done == tp->num_threads) {
 			break;
 		}
 	}
