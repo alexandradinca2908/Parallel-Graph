@@ -111,11 +111,11 @@ static void *thread_loop_function(void *arg)
 void wait_for_completion(os_threadpool_t *tp)
 {
 	/* TODO: Wait for all worker threads. Use synchronization. */
-	while (1) {
-		if (tp->done == tp->num_threads) {
-			break;
-		}
-	}
+	// while (1) {
+	// 	if (tp->done == tp->num_threads) {
+	// 		break;
+	// 	}
+	// }
 
 	/* Join all worker threads. */
 	for (unsigned int i = 0; i < tp->num_threads; i++)
