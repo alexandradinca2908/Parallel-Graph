@@ -47,6 +47,7 @@ void task_argument(void *node)
 			pthread_mutex_unlock(&neighbour_mutex);
 
 			os_task_t *task = create_task(task_argument, (void *)crtNeighbour, NULL);
+
 			enqueue_task(tp, task);
 
 		} else {
@@ -59,8 +60,7 @@ static void process_node(unsigned int idx)
 {
 	/* TODO: Implement thread-pool based processing of graph. */
 
-	while (tp->sleep < 4) {
-	}
+	while (tp->sleep < 4);
 
 	os_node_t *nodeZero = graph->nodes[idx];
 
@@ -86,7 +86,6 @@ int main(int argc, char *argv[])
 	/* TODO: Initialize graph synchronization mechanisms. */
 	pthread_mutex_init(&sum_mutex, NULL);
 	pthread_mutex_init(&neighbour_mutex, NULL);
-	
 
 	tp = create_threadpool(NUM_THREADS);
 	process_node(0);

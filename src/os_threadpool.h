@@ -32,7 +32,6 @@ typedef struct os_threadpool {
 	int sleep;
 	int job_done;
 	int enqueued_once;
-
 } os_threadpool_t;
 
 os_task_t *create_task(void (*f)(void *), void *arg, void (*destroy_arg)(void *));
