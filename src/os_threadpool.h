@@ -28,8 +28,10 @@ typedef struct os_threadpool {
 
 	/* TODO: Define threapool / queue synchronization data. */
 	pthread_mutex_t mutex;
-	int noTaskLeft;
-	unsigned int done;
+	pthread_cond_t condition_variable;
+	int sleep;
+	int job_done;
+	int enqueued_once;
 
 } os_threadpool_t;
 

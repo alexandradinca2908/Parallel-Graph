@@ -43,6 +43,9 @@ void enqueue_task(os_threadpool_t *tp, os_task_t *t)
 	pthread_mutex_lock(&tp->mutex);
 
 	list_add_tail(&tp->head, &t->list);
+	tp->sleep--;
+	tp->enqueued_once = 1;
+	pthread_cond_signal(&tp->condition_variable);
 
 	pthread_mutex_unlock(&tp->mutex);
 }
@@ -67,18 +70,27 @@ os_task_t *dequeue_task(os_threadpool_t *tp)
 	os_task_t *t = NULL;
 
 	/* TODO: Dequeue task from the shared task queue. Use synchronization. */
-	if (!queue_is_empty(tp)) {
-		pthread_mutex_lock(&tp->mutex);
 
-		os_list_node_t *crtElem = tp->head.next;
-		t = list_entry(crtElem, os_task_t, list);
-
-		list_del(crtElem);
-	
-		pthread_mutex_unlock(&tp->mutex);
+    pthread_mutex_lock(&tp->mutex);
+    
+    if (queue_is_empty(tp) && tp->job_done == 0) {
+        tp->sleep++;
+		
+        if (tp->sleep == 4 && tp->enqueued_once == 1) {
+            tp->job_done = 1;
+            pthread_cond_broadcast(&tp->condition_variable);
+        } else {
+            pthread_cond_wait(&tp->condition_variable, &tp->mutex);
+        }
 	}
 
-	return t;
+    os_list_node_t *crtElem = tp->head.next;
+	t = list_entry(crtElem, os_task_t, list);
+	list_del(crtElem);
+
+    pthread_mutex_unlock(&tp->mutex);
+	
+    return t;
 }
 
 /* Loop function for threads */
@@ -91,15 +103,10 @@ static void *thread_loop_function(void *arg)
 
 		t = dequeue_task(tp);
 
-		pthread_mutex_lock(&tp->mutex);
 		if (t == NULL) {
-			tp->done++;
-			pthread_mutex_unlock(&tp->mutex);
-
 			break;
 		}
-		pthread_mutex_unlock(&tp->mutex);
-
+	
 		t->action(t->argument);
 		destroy_task(t);
 	}
@@ -111,14 +118,14 @@ static void *thread_loop_function(void *arg)
 void wait_for_completion(os_threadpool_t *tp)
 {
 	/* TODO: Wait for all worker threads. Use synchronization. */
-	// while (1) {
-	// 	if (tp->done == tp->num_threads) {
-	// 		break;
-	// 	}
-	// }
-
+	while (1) {
+		if (queue_is_empty(tp) && tp->enqueued_once == 1) {
+			break;
+		}
+	}
+	
 	/* Join all worker threads. */
-	for (unsigned int i = 0; i < tp->num_threads; i++)
+	for (unsigned int i = 0; i < tp->num_threads && tp->job_done == 1; i++)
 		pthread_join(tp->threads[i], NULL);
 }
 
@@ -135,18 +142,19 @@ os_threadpool_t *create_threadpool(unsigned int num_threads)
 
 	/* TODO: Initialize synchronization data. */
 	pthread_mutex_init(&tp->mutex, NULL);
+	pthread_cond_init(&tp->condition_variable, NULL);
+	tp->sleep = 0;
+	tp->job_done = 0;
+	tp->enqueued_once = 0;
 
 	tp->num_threads = num_threads;
 	tp->threads = malloc(num_threads * sizeof(*tp->threads));
 	DIE(tp->threads == NULL, "malloc");
+
 	for (unsigned int i = 0; i < num_threads; ++i) {
 		rc = pthread_create(&tp->threads[i], NULL, &thread_loop_function, (void *) tp);
 		DIE(rc < 0, "pthread_create");
 	}
-
-	tp->noTaskLeft = 0;
-	tp->done = 0;
-
 	return tp;
 }
 

@@ -16,12 +16,10 @@
 static int sum;
 static os_graph_t *graph;
 static os_threadpool_t *tp;
-int nrNodes;
 
 /* TODO: Define graph synchronization mechanisms. */
 pthread_mutex_t sum_mutex;
 pthread_mutex_t neighbour_mutex;
-pthread_mutex_t nrNodes_mutex;
 
 /* TODO: Define graph task argument. */
 void task_argument(void *node)
@@ -35,17 +33,6 @@ void task_argument(void *node)
 
 	//  Mark as done
 	graph->visited[crtNode->id] = DONE;
-
-	//  Remove node from unvisited nodes
-	pthread_mutex_lock(&nrNodes_mutex);
-	nrNodes--;
-
-	if (nrNodes == 0) {
-		tp->noTaskLeft = 1;
-		pthread_mutex_unlock(&nrNodes_mutex);
-		return;
-	}
-	pthread_mutex_unlock(&nrNodes_mutex);
 
 	//  There are still unvisited nodes
 	//  We look for them in the crt node's neighbours
@@ -79,21 +66,6 @@ static void process_node(unsigned int idx)
 	enqueue_task(tp, task);
 }
 
-void count_nodes(os_graph_t *graph, int idx, int *visited) {
-	visited[idx] = 1;
-
-	int neighbour;
-
-	for (unsigned int i = 0; i < graph->nodes[idx]->num_neighbours; i++) {
-		neighbour = graph->nodes[idx]->neighbours[i];
-
-		if (visited[neighbour] == 0) {
-			nrNodes++;
-			count_nodes(graph, neighbour, visited);
-		}
-	}
-}
-
 int main(int argc, char *argv[])
 {
 	FILE *input_file;
@@ -108,20 +80,9 @@ int main(int argc, char *argv[])
 
 	graph = create_graph_from_file(input_file);
 
-	//  Count how many nodes are connected to node 0
-	const unsigned int kNumNodes = graph->num_nodes;
-	int visited[kNumNodes];
-	for (unsigned int i = 0; i < graph->num_nodes; i++) {
-		visited[i] = 0;
-	}
-
-	nrNodes++;
-	count_nodes(graph, 0, visited);
-
 	/* TODO: Initialize graph synchronization mechanisms. */
 	pthread_mutex_init(&sum_mutex, NULL);
 	pthread_mutex_init(&neighbour_mutex, NULL);
-	pthread_mutex_init(&nrNodes_mutex, NULL);
 
 	tp = create_threadpool(NUM_THREADS);
 	process_node(0);
@@ -130,7 +91,6 @@ int main(int argc, char *argv[])
 
 	pthread_mutex_destroy(&sum_mutex);
 	pthread_mutex_destroy(&neighbour_mutex);
-	pthread_mutex_destroy(&nrNodes_mutex);
 
 	printf("%d", sum);
 
