@@ -41,7 +41,7 @@ void enqueue_task(os_threadpool_t *tp, os_task_t *t)
 	/* TODO: Enqueue task to the shared task queue. Use synchronization. */
 	pthread_mutex_lock(&tp->mutex);
 
-	list_add(&tp->head, &t->list);
+	list_add_tail(&tp->head, &t->list);
 	if (tp->sleep > 0) {
 		pthread_cond_signal(&tp->condition_variable);
 		tp->sleep--;

@@ -60,7 +60,9 @@ static void process_node(unsigned int idx)
 {
 	/* TODO: Implement thread-pool based processing of graph. */
 
-	while (tp->sleep < 4);
+	while (tp->sleep < 4) {
+		//  Main thread won't enqueue unless all threads sleep
+	}
 
 	os_node_t *nodeZero = graph->nodes[idx];
 
